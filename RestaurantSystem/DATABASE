@@ -1,0 +1,162 @@
+-- ========================================
+-- Restaurant Food Ordering System
+-- Oracle 11g XE Database Schema
+-- ========================================
+
+-- Drop existing tables if any
+DROP TABLE orders CASCADE CONSTRAINTS;
+DROP TABLE cart CASCADE CONSTRAINTS;
+DROP TABLE menu CASCADE CONSTRAINTS;
+DROP TABLE users CASCADE CONSTRAINTS;
+DROP TABLE admin CASCADE CONSTRAINTS;
+
+DROP SEQUENCE user_seq;
+DROP SEQUENCE admin_seq;
+DROP SEQUENCE menu_seq;
+DROP SEQUENCE cart_seq;
+DROP SEQUENCE order_seq;
+
+-- ========================================
+-- USERS TABLE
+-- ========================================
+CREATE TABLE users (
+    user_id NUMBER PRIMARY KEY,
+    name VARCHAR2(100) NOT NULL,
+    email VARCHAR2(100) UNIQUE NOT NULL,
+    phone VARCHAR2(15) NOT NULL,
+    password VARCHAR2(100) NOT NULL,
+    created_date DATE DEFAULT SYSDATE
+);
+
+CREATE SEQUENCE user_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER user_trigger
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    SELECT user_seq.NEXTVAL INTO :NEW.user_id FROM DUAL;
+END;
+/
+
+-- ========================================
+-- ADMIN TABLE
+-- ========================================
+CREATE TABLE admin (
+    admin_id NUMBER PRIMARY KEY,
+    name VARCHAR2(100) NOT NULL,
+    email VARCHAR2(100) UNIQUE NOT NULL,
+    password VARCHAR2(100) NOT NULL,
+    created_date DATE DEFAULT SYSDATE
+);
+
+CREATE SEQUENCE admin_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER admin_trigger
+BEFORE INSERT ON admin
+FOR EACH ROW
+BEGIN
+    SELECT admin_seq.NEXTVAL INTO :NEW.admin_id FROM DUAL;
+END;
+/
+
+-- Insert default admin
+INSERT INTO admin (name, email, password) 
+VALUES ('Admin User', 'admin@gmail.com', 'admin123');
+
+-- ========================================
+-- MENU TABLE
+-- ========================================
+CREATE TABLE menu (
+    menu_id NUMBER PRIMARY KEY,
+    food_name VARCHAR2(100) NOT NULL,
+    category VARCHAR2(50) NOT NULL,
+    price NUMBER(10,2) NOT NULL,
+    description VARCHAR2(500),
+    image_url VARCHAR2(500),
+    available VARCHAR2(10) DEFAULT 'Yes',
+    created_date DATE DEFAULT SYSDATE
+);
+
+CREATE SEQUENCE menu_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER menu_trigger
+BEFORE INSERT ON menu
+FOR EACH ROW
+BEGIN
+    SELECT menu_seq.NEXTVAL INTO :NEW.menu_id FROM DUAL;
+END;
+/
+
+-- Sample menu items
+INSERT INTO menu (food_name, category, price, description, image_url) 
+VALUES ('Chicken Biryani', 'Main Course', 250.00, 'Delicious aromatic rice with tender chicken', 'https://via.placeholder.com/300x200?text=Chicken+Biryani');
+
+INSERT INTO menu (food_name, category, price, description, image_url) 
+VALUES ('Paneer Butter Masala', 'Main Course', 180.00, 'Creamy tomato gravy with soft paneer cubes', 'https://via.placeholder.com/300x200?text=Paneer+Masala');
+
+INSERT INTO menu (food_name, category, price, description, image_url) 
+VALUES ('Veg Fried Rice', 'Rice', 120.00, 'Tasty fried rice with fresh vegetables', 'https://via.placeholder.com/300x200?text=Fried+Rice');
+
+INSERT INTO menu (food_name, category, price, description, image_url) 
+VALUES ('Chicken Tandoori', 'Starter', 300.00, 'Grilled chicken marinated in spices', 'https://via.placeholder.com/300x200?text=Tandoori');
+
+INSERT INTO menu (food_name, category, price, description, image_url) 
+VALUES ('Gulab Jamun', 'Dessert', 60.00, 'Sweet milk-solid balls in sugar syrup', 'https://via.placeholder.com/300x200?text=Gulab+Jamun');
+
+INSERT INTO menu (food_name, category, price, description, image_url) 
+VALUES ('Masala Dosa', 'Breakfast', 80.00, 'Crispy dosa filled with spiced potato', 'https://via.placeholder.com/300x200?text=Masala+Dosa');
+
+-- ========================================
+-- CART TABLE
+-- ========================================
+CREATE TABLE cart (
+    cart_id NUMBER PRIMARY KEY,
+    user_email VARCHAR2(100) NOT NULL,
+    menu_id NUMBER NOT NULL,
+    food_name VARCHAR2(100) NOT NULL,
+    price NUMBER(10,2) NOT NULL,
+    quantity NUMBER DEFAULT 1,
+    total_price NUMBER(10,2) NOT NULL,
+    FOREIGN KEY (menu_id) REFERENCES menu(menu_id) ON DELETE CASCADE
+);
+
+CREATE SEQUENCE cart_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER cart_trigger
+BEFORE INSERT ON cart
+FOR EACH ROW
+BEGIN
+    SELECT cart_seq.NEXTVAL INTO :NEW.cart_id FROM DUAL;
+END;
+/
+
+-- ========================================
+-- ORDERS TABLE
+-- ========================================
+CREATE TABLE orders (
+    order_id NUMBER PRIMARY KEY,
+    user_email VARCHAR2(100) NOT NULL,
+    total_amount NUMBER(10,2) NOT NULL,
+    order_date DATE DEFAULT SYSDATE,
+    status VARCHAR2(20) DEFAULT 'Pending',
+    delivery_address VARCHAR2(500),
+    phone VARCHAR2(15)
+);
+
+CREATE SEQUENCE order_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER order_trigger
+BEFORE INSERT ON orders
+FOR EACH ROW
+BEGIN
+    SELECT order_seq.NEXTVAL INTO :NEW.order_id FROM DUAL;
+END;
+/
+
+-- ========================================
+-- COMMIT CHANGES
+-- ========================================
+COMMIT;
+
+-- Display success message
+SELECT 'Database schema created successfully!' AS STATUS FROM DUAL;
